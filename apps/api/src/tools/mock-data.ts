@@ -31,6 +31,15 @@ export interface Order {
 
 export const customers: Customer[] = [
   {
+    id: 'cust_000',
+    name: 'Urmil',
+    phone: '+91-63555-58644',
+    email: 'urmil@example.in',
+    plan: 'enterprise',
+    joinedAt: '2024-01-01',
+    notes: 'Default account. Enterprise plan.',
+  },
+  {
     id: 'cust_001',
     name: 'Aarav Mehta',
     phone: '+91-98765-43210',

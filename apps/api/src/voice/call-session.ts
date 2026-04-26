@@ -412,8 +412,10 @@ export class CallSession {
       if (turn.abort.signal.aborted) return;
       const msg = err instanceof Error ? err.message : 'unknown';
       this.logger.error(`TTS failed: ${msg}`);
+      const errBody = err instanceof Error ? err.message : '';
       const code: ErrorCode =
-        (err as { status?: number }).status === 401
+        (err as { status?: number }).status === 401 &&
+        !errBody.includes('missing_permissions')
           ? 'TTS_QUOTA_EXCEEDED'
           : 'TTS_FAILED';
       this.emitError(code, msg);
