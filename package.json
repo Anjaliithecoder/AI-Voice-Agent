@@ -1,0 +1,18 @@
+{
+  "name": "voiceforge",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Web-based AI voice agent — Groq STT/LLM + ElevenLabs TTS",
+  "scripts": {
+    "dev": "pnpm --parallel --recursive dev",
+    "dev:api": "pnpm --filter api dev",
+    "dev:web": "pnpm --filter web dev",
+    "build": "pnpm --recursive build",
+    "build:shared": "pnpm --filter @voiceforge/shared build"
+  },
+  "engines": {
+    "node": ">=20.0.0",
+    "pnpm": ">=9.0.0"
+  },
+  "packageManager": "pnpm@9.15.9"
+}
