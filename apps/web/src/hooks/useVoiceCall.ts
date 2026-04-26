@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import {
   CallState,
   EVENTS,
@@ -21,7 +21,9 @@ export function useVoiceCall(): {
   startCall: () => Promise<void>;
   endCall: () => void;
   micLevel: number;
+  reconnecting: boolean;
 } {
+  const [reconnecting, setReconnecting] = useState(false);
   const player = useAudioPlayer();
   const playerRef = useRef(player);
   playerRef.current = player;
@@ -71,6 +73,25 @@ export function useVoiceCall(): {
       setCallState(CallState.Idle);
     });
     sock.on('disconnect', () => {
+      setCallState(CallState.Ended);
+    });
+
+    sock.io.on('reconnect_attempt', () => {
+      setReconnecting(true);
+    });
+
+    sock.io.on('reconnect', () => {
+      setReconnecting(false);
+      // Re-establish the call if one was active before disconnect.
+      const currentCallId = useCallStore.getState().callId;
+      if (currentCallId) {
+        sock.emit(EVENTS.CALL_START, { agentId: 'arya' });
+      }
+    });
+
+    sock.io.on('reconnect_failed', () => {
+      setReconnecting(false);
+      setError('Connection lost. Please try again.');
       setCallState(CallState.Ended);
     });
 
@@ -183,8 +204,8 @@ export function useVoiceCall(): {
       capture.stop();
       disconnectSocket();
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line
   }, []);
 
-  return { startCall, endCall, micLevel: capture.level };
+  return { startCall, endCall, micLevel: capture.level, reconnecting };
 }

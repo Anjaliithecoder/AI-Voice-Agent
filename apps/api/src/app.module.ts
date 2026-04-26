@@ -1,7 +1,10 @@
 import { Module } from '@nestjs/common';
+import { APP_GUARD } from '@nestjs/core';
 import { ConfigModule } from '@nestjs/config';
+import { ThrottlerModule, ThrottlerGuard } from '@nestjs/throttler';
 import { join } from 'node:path';
 import { envValidationSchema } from './config/env.validation';
+import { HealthModule } from './health/health.module';
 import { VoiceModule } from './voice/voice.module';
 import { SttModule } from './stt/stt.module';
 import { LlmModule } from './llm/llm.module';
@@ -18,11 +21,19 @@ import { ToolsModule } from './tools/tools.module';
       validationSchema: envValidationSchema,
       validationOptions: { abortEarly: false, allowUnknown: true },
     }),
+    ThrottlerModule.forRoot([{ ttl: 60000, limit: 100 }]),
+    HealthModule,
     SttModule,
     LlmModule,
     TtsModule,
     ToolsModule,
     VoiceModule,
+  ],
+  providers: [
+    {
+      provide: APP_GUARD,
+      useClass: ThrottlerGuard,
+    },
   ],
 })
 export class AppModule {}

@@ -46,7 +46,21 @@ export class VoiceGateway
     this.logger.log(`Voice gateway ready on /voice (CORS: ${corsOrigin})`);
   }
 
+  private static readonly MAX_CONCURRENT_CONNECTIONS = 10;
+
   handleConnection(@ConnectedSocket() socket: Socket): void {
+    if (this.transports.size >= VoiceGateway.MAX_CONCURRENT_CONNECTIONS) {
+      this.logger.warn(
+        `Connection rejected: max concurrent transports (${VoiceGateway.MAX_CONCURRENT_CONNECTIONS}) reached — socket ${socket.id}`,
+      );
+      socket.emit(EVENTS.ERROR, {
+        code: 'UNKNOWN' as const,
+        message: 'Server at capacity. Please try again later.',
+        recoverable: true,
+      });
+      socket.disconnect(true);
+      return;
+    }
     this.logger.log(`socket connected: ${socket.id}`);
   }
 

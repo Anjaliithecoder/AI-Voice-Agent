@@ -84,6 +84,7 @@ export class ElevenLabsTtsService {
 
     const reader = res.body.getReader();
     try {
+      // eslint-disable-next-line no-constant-condition
       while (true) {
         if (abortSignal?.aborted) {
           // allow the stream to abort cleanly

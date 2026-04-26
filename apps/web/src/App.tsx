@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Moon, Sun, Mic } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { ErrorBoundary } from '@/components/ErrorBoundary';
 import { VoiceCall } from '@/components/VoiceCall';
 
 type Theme = 'light' | 'dark';
@@ -47,9 +48,11 @@ export function App() {
       </header>
 
       <main className="flex-1">
-        <div className="max-w-5xl mx-auto px-6 py-10">
-          <VoiceCall />
-        </div>
+        <ErrorBoundary>
+          <div className="max-w-5xl mx-auto px-6 py-10">
+            <VoiceCall />
+          </div>
+        </ErrorBoundary>
       </main>
 
       <footer className="border-t border-border/60 mt-10">

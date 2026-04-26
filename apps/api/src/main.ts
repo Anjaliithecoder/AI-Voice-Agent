@@ -18,6 +18,21 @@ async function bootstrap(): Promise<void> {
   const port = config.get<number>('PORT', 3001);
   const corsOrigin = config.get<string>('CORS_ORIGIN', 'http://localhost:5173');
 
+  // Security headers
+  const httpAdapter = app.getHttpAdapter().getInstance() as {
+    disable: (setting: string) => void;
+  };
+  httpAdapter.disable('x-powered-by');
+
+  app.use((_req: unknown, res: { setHeader: (name: string, value: string) => void }, next: () => void) => {
+    res.setHeader('X-Content-Type-Options', 'nosniff');
+    res.setHeader('X-Frame-Options', 'DENY');
+    res.setHeader('X-XSS-Protection', '1; mode=block');
+    res.setHeader('Strict-Transport-Security', 'max-age=31536000; includeSubDomains');
+    res.setHeader('Referrer-Policy', 'strict-origin-when-cross-origin');
+    next();
+  });
+
   app.enableCors({
     origin: corsOrigin,
     credentials: true,
@@ -59,6 +74,14 @@ async function bootstrap(): Promise<void> {
   logger.log(`CORS origin: ${corsOrigin}`);
   logger.log(`Twilio Media Streams ready on ws://localhost:${port}${TWILIO_WS_PATH}`);
   logger.log(`TwiML endpoint: POST http://localhost:${port}/twilio/twiml`);
+
+  const shutdownLogger = new Logger('Shutdown');
+  const signals: NodeJS.Signals[] = ['SIGTERM', 'SIGINT'];
+  for (const signal of signals) {
+    process.on(signal, () => {
+      shutdownLogger.log(`Received ${signal}, starting graceful shutdown...`);
+    });
+  }
 }
 
 bootstrap().catch((err) => {

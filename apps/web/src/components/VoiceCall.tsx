@@ -21,14 +21,18 @@ export function VoiceCall() {
   const callState = useCallStore((s) => s.callState);
   const turns = useCallStore((s) => s.turns);
   const error = useCallStore((s) => s.error);
-  const { startCall, endCall, micLevel } = useVoiceCall();
+  const { startCall, endCall, micLevel, reconnecting } = useVoiceCall();
 
   const isAgentSpeaking = callState === CallState.Speaking;
   const isUserSpeaking = callState === CallState.Listening && micLevel > 0.025;
 
+  const statusText = reconnecting
+    ? 'Reconnecting…'
+    : STATUS_TEXT[callState];
+
   return (
     <div className="space-y-6">
-      <Card className="overflow-hidden">
+      <Card className="overflow-hidden" aria-label="Voice call controls">
         <div className="px-8 py-10 flex flex-col items-center gap-6 bg-gradient-to-b from-primary/5 to-transparent">
           <div className={cn(
             'h-16 w-full max-w-md transition-opacity',
@@ -43,11 +47,15 @@ export function VoiceCall() {
               }
             />
           </div>
-          <div className="text-sm text-muted-foreground h-5">
+          <div
+            className="text-sm text-muted-foreground h-5"
+            role="status"
+            aria-live="polite"
+          >
             {error ? (
               <span className="text-red-500">{error}</span>
             ) : (
-              STATUS_TEXT[callState]
+              statusText
             )}
           </div>
           <CallButton state={callState} onStart={startCall} onEnd={endCall} />
@@ -55,7 +63,7 @@ export function VoiceCall() {
       </Card>
 
       <div className="grid grid-cols-1 lg:grid-cols-[1.6fr_1fr] gap-6">
-        <Card className="h-[400px] flex flex-col">
+        <Card className="h-[400px] flex flex-col" aria-label="Live transcript">
           <div className="px-6 py-3 border-b border-border/60 text-[11px] uppercase tracking-wider text-muted-foreground">
             Live Transcript
           </div>
@@ -64,7 +72,7 @@ export function VoiceCall() {
           </div>
         </Card>
 
-        <Card className="h-[400px] overflow-y-auto">
+        <Card className="h-[400px] overflow-y-auto" aria-label="Call metrics">
           <div className="px-6 py-3 border-b border-border/60 text-[11px] uppercase tracking-wider text-muted-foreground">
             Metrics
           </div>
